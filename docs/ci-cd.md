@@ -8,10 +8,10 @@ El flujo aplica estas etapas:
 
 1. **Validacion en pull requests y pushes:** instala dependencias, ejecuta ESLint, compila el frontend y verifica la sintaxis del backend.
 2. **Prueba de liberacion:** construye los contenedores, los inicia con MongoDB y revisa que frontend y API respondan antes de publicar.
-3. **Liberacion continua:** al integrar cambios en `main` o `master`, publica imagenes de frontend y backend en GHCR con el SHA del commit. El tag inmutable permite identificar exactamente la version liberada.
-4. **Despliegue continuo opcional:** cuando se activa `DEPLOY_ENABLED`, GitHub Actions se conecta por SSH al servidor Linux, descarga esas imagenes y actualiza los servicios. Compose espera los health checks antes de marcar la actualizacion como completada.
+3. **Liberacion continua:** al integrar cambios en `main` o `master` y configurar `APP_PUBLIC_API_URL`, publica imagenes de frontend y backend en GHCR con el SHA del commit. El tag inmutable permite identificar exactamente la version liberada.
+4. **Despliegue continuo opcional:** cuando tambien se activa `DEPLOY_ENABLED`, GitHub Actions se conecta por SSH al servidor Linux, descarga esas imagenes y actualiza los servicios. Compose espera los health checks antes de marcar la actualizacion como completada.
 
-El despliegue remoto requiere un servidor Docker y credenciales que solo la persona administradora del repositorio puede configurar. Hasta que se habilite `DEPLOY_ENABLED`, el pipeline valida y publica las imagenes, pero no intenta conectarse a un servidor inexistente.
+El despliegue remoto requiere un servidor Docker y credenciales que solo la persona administradora del repositorio puede configurar. Mientras `APP_PUBLIC_API_URL` no tenga un valor, los jobs de publicacion y despliegue se omiten, pero el pipeline continua validando y probando el codigo.
 
 ## Entorno requerido
 

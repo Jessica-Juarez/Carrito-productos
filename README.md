@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Carrito de productos
 
-## Getting Started
+Aplicacion web con frontend Next.js, API REST en Express y base de datos MongoDB.
 
-First, run the development server:
+## Desarrollo local
+
+Instala dependencias del frontend y del backend y configura las variables locales de MongoDB/JWT en `backend/src/.env`. No publiques ese archivo ni uses sus valores de desarrollo en produccion.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En otra terminal, inicia el backend:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Liberacion y despliegue
 
-## Learn More
+La guia del caso de estudio documenta el pipeline de GitHub Actions, los niveles de servicio, metricas, parametros de las herramientas y los requisitos para habilitar despliegue remoto:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Caso de estudio CI/CD](docs/ci-cd.md)
+- [Pipeline GitHub Actions](.github/workflows/ci-cd.yml)
+- [Entorno de liberacion](docker-compose.release.yml)
+- [Entorno de despliegue](docker-compose.deploy.yml)

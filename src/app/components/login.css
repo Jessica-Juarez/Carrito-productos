@@ -1,0 +1,130 @@
+/* src/components/login.css */
+/* ===== CONTENEDOR PRINCIPAL - MÁS CHICO (400px) ===== */
+.login-container {
+  width: 100%;
+  max-width: 400px;  /* ← MÁS CHICO: de 550px a 400px */
+  margin: 0 auto;
+  padding: 15px;     /* ← Menos padding exterior */
+}
+
+/* ===== CUADRO BLANCO MÁS CHICO ===== */
+.login-card {
+  background: white;
+  border-radius: 15px;  /* ← Bordes menos redondeados */
+  padding: 35px 30px;   /* ← MENOS espacio interno */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* ← Sombra más suave */
+  text-align: center;
+}
+
+/* ===== TÍTULO MÁS CHICO ===== */
+.login-title {
+  color: #333;
+  font-size: 26px;      /* ← Más pequeño */
+  font-weight: bold;
+  margin-bottom: 10px;  /* ← Menos espacio */
+  text-transform: uppercase;
+  letter-spacing: 0.5px; /* ← Menos espaciado */
+}
+
+/* ===== SUBTÍTULO MÁS CHICO ===== */
+.login-subtitle {
+  color: #666;
+  font-size: 14px;      /* ← Más pequeño */
+  margin-bottom: 25px;  /* ← Menos espacio */
+  line-height: 1.4;
+}
+
+/* ===== FORMULARIO ===== */
+.login-form {
+  width: 100%;
+}
+
+/* ===== CAMPOS MÁS COMPACTOS ===== */
+.form-group {
+  margin-bottom: 20px;  /* ← Menos espacio entre campos */
+  text-align: left;
+}
+
+/* ===== ETIQUETAS MÁS CHICAS ===== */
+.form-label {
+  display: block;
+  color: #333;
+  font-size: 16px;      /* ← Más pequeño */
+  font-weight: 600;
+  margin-bottom: 8px;   /* ← Menos espacio */
+  text-transform: uppercase;
+  letter-spacing: 0.3px; /* ← Menos espaciado */
+}
+
+/* ===== INPUTS MÁS CHICOS ===== */
+.form-input {
+  width: 100%;
+  padding: 14px 16px;   /* ← Menos padding */
+  border: 2px solid #e0e0e0; /* ← Borde más delgado */
+  border-radius: 8px;    /* ← Bordes menos redondeados */
+  font-size: 16px;       /* ← Texto más pequeño */
+  color: #333;
+  background: #f8f8f8;
+  transition: all 0.3s ease;
+}
+
+/* ===== EFECTO FOCUS ===== */
+.form-input:focus {
+  outline: none;
+  border-color: #6a11cb;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1); /* ← Sombra más pequeña */
+}
+
+/* ===== PLACEHOLDER ===== */
+.form-input::placeholder {
+  color: #999;
+  font-weight: 400;
+  font-size: 14px;      /* ← Placeholder más pequeño */
+}
+
+/* ===== BOTÓN MÁS CHICO ===== */
+.login-button {
+  width: 100%;
+  padding: 16px;        /* ← Menos alto */
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;    /* ← Bordes menos redondeados */
+  font-size: 16px;       /* ← Texto más pequeño */
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 10px;      /* ← Menos espacio arriba */
+  margin-bottom: 20px;   /* ← Menos espacio abajo */
+}
+
+/* ===== EFECTO HOVER ===== */
+.login-button:hover {
+  transform: translateY(-2px); /* ← Efecto más sutil */
+  box-shadow: 0 8px 20px rgba(106, 17, 203, 0.25);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+/* ===== ENLACE REGISTRO MÁS CHICO ===== */
+.register-link {
+  color: #666;
+  font-size: 14px;      /* ← Más pequeño */
+  margin-top: 12px;     /* ← Menos espacio */
+}
+
+.register-text {
+  color: #2575fc;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;      /* ← Más pequeño */
+  transition: color 0.3s;
+}
+
+.register-text:hover {
+  color: #1a5bb8;
+  text-decoration: underline;
+}

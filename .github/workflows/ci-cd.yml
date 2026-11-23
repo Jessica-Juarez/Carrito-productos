@@ -1,0 +1,143 @@
+name: CI/CD - Carrito de productos
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validar codigo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Revisar estilo del frontend
+        run: npm run lint
+
+      - name: Compilar frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5000/api
+
+      - name: Instalar backend
+        working-directory: backend
+        run: npm ci --no-audit --no-fund
+
+      - name: Verificar sintaxis del backend
+        working-directory: backend
+        run: node --check src/server.js
+
+  release-test:
+    name: Probar entorno de liberacion
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_PREFIX: carrito-productos-ci
+      IMAGE_TAG: ci
+      APP_ORIGIN: http://localhost:3000
+      APP_PUBLIC_API_URL: http://localhost:5000/api
+      MONGODB_ROOT_USERNAME: ci_admin
+      MONGODB_ROOT_PASSWORD: ci_mongodb_password_123456
+      JWT_SECRET: ci_jwt_secret_for_release_tests_only
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Levantar entorno de liberacion
+        run: bash scripts/release-env.sh
+
+      - name: Ejecutar pruebas de humo
+        run: bash scripts/test-release.sh
+
+      - name: Limpiar entorno de CI
+        if: always()
+        run: docker compose -f docker-compose.release.yml down --volumes --remove-orphans
+
+  publish:
+    name: Publicar imagenes en GHCR
+    needs: release-test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      APP_PUBLIC_API_URL: ${{ vars.APP_PUBLIC_API_URL }}
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Calcular nombre de imagenes
+        run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Validar URL publica de API
+        run: |
+          if [[ -z "$APP_PUBLIC_API_URL" ]]; then
+            echo "Configura la variable de repositorio APP_PUBLIC_API_URL antes de publicar." >&2
+            exit 1
+          fi
+
+      - name: Iniciar sesion en GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Construir y publicar frontend
+        run: |
+          docker build --pull \
+            --build-arg NEXT_PUBLIC_API_URL="$APP_PUBLIC_API_URL" \
+            --tag "$IMAGE_PREFIX/frontend:$IMAGE_TAG" .
+          docker push "$IMAGE_PREFIX/frontend:$IMAGE_TAG"
+
+      - name: Construir y publicar backend
+        run: |
+          docker build --pull --tag "$IMAGE_PREFIX/backend:$IMAGE_TAG" ./backend
+          docker push "$IMAGE_PREFIX/backend:$IMAGE_TAG"
+
+  deploy:
+    name: Desplegar en servidor Docker
+    needs: publish
+    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      IMAGE_TAG: ${{ github.sha }}
+      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar acceso SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Desplegar nueva version
+        run: bash scripts/deploy.sh

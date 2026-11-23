@@ -33,6 +33,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Base de datos no disponible:', error.message);
+    res.status(503).json({ mensaje: 'Base de datos no disponible' });
+  }
+});
+
 // Rutas
 app.use('/api/auth', authRoutes);
 
@@ -58,10 +68,19 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`Servidor backend corriendo en puerto ${PORT}`);
-  });
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Servidor backend corriendo en puerto ${PORT}`);
+    });
+  } catch (error) {
+    console.error('No se pudo iniciar el backend:', error.message);
+    process.exitCode = 1;
+  }
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;

@@ -23,6 +23,7 @@ npm run dev
 
 La guia del caso de estudio documenta el pipeline de GitHub Actions, los niveles de servicio, metricas, parametros de las herramientas y los requisitos para habilitar despliegue remoto:
 
+- [Configuracion de Vercel y MongoDB Atlas](docs/ci-cd.md#despliegue-en-vercel)
 - [Caso de estudio CI/CD](docs/ci-cd.md)
 - [Pipeline GitHub Actions](.github/workflows/ci-cd.yml)
 - [Entorno de liberacion](docker-compose.release.yml)

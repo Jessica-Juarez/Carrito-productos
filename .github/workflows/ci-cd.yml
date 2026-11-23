@@ -41,6 +41,10 @@ jobs:
         working-directory: backend
         run: node --check src/server.js
 
+      - name: Probar API del backend
+        working-directory: backend
+        run: node --test test/*.test.js
+
   release-test:
     name: Probar entorno de liberacion
     needs: validate

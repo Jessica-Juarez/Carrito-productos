@@ -1,15 +1,23 @@
 const mongoose = require('mongoose');
 
+let connectionPromise;
+
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(process.env.MONGODB_URI);
+  }
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('✅ MongoDB conectado exitosamente');
+    await connectionPromise;
   } catch (error) {
-    console.error('❌ Error al conectar MongoDB:', error.message);
-    process.exit(1);
+    console.error('Error al conectar MongoDB:', error.message);
+    throw error;
+  } finally {
+    connectionPromise = undefined;
   }
 };
 

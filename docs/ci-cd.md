@@ -13,6 +13,21 @@ El flujo aplica estas etapas:
 
 El despliegue remoto requiere un servidor Docker y credenciales que solo la persona administradora del repositorio puede configurar. Mientras `APP_PUBLIC_API_URL` no tenga un valor, los jobs de publicacion y despliegue se omiten, pero el pipeline continua validando y probando el codigo.
 
+## Despliegue en Vercel
+
+Vercel ejecuta Next.js y Express como dos proyectos; MongoDB Atlas aloja la base de datos. El entorno Docker de CI sigue ejecutandose para validar los cambios, pero Vercel no usa los scripts SSH ni `docker-compose.deploy.yml`. La integracion Git de Vercel despliega en paralelo con GitHub Actions: por si sola no espera que las pruebas terminen.
+
+1. Importa este repositorio en Vercel como proyecto frontend, con directorio raiz `.` y framework Next.js. Configura `master` como rama de produccion si no se selecciona automaticamente. Guarda la URL de produccion del frontend. Este primer despliegue aun no podra autenticar usuarios.
+2. Importa el mismo repositorio como otro proyecto, con directorio raiz `backend` y framework Express. En las variables de entorno de produccion de Vercel configura:
+   - `MONGODB_URI`: cadena de conexion del cluster Atlas con usuario, contraseña y base de datos. Guardala directamente en Vercel; no la compartas ni la subas a Git.
+   - `JWT_SECRET`: secreto aleatorio largo y unico, almacenado directamente en Vercel.
+   - `CORS_ORIGIN`: URL de produccion del frontend, sin barra final.
+3. Despliega la API. Comprueba que `https://<dominio-api>/health` responda `{"status":"ok","database":"connected"}`. Si falla, revisa las credenciales y la lista de acceso de red de Atlas. Permitir `0.0.0.0/0` habilita intentos desde cualquier IP; usa una contraseña fuerte y permisos minimos.
+4. En las variables de produccion del proyecto frontend, agrega `NEXT_PUBLIC_API_URL` con la URL publica de la API terminada en `/api`. Vuelve a desplegar el frontend, ya que Next.js incorpora esa URL durante la compilacion.
+5. Prueba registro e inicio de sesion desde el frontend. Para cambios futuros, la integracion Git desplegara los pushes a la rama de produccion; verifica tambien el resultado de GitHub Actions.
+
+Para este flujo no es necesario configurar `APP_PUBLIC_API_URL` ni `DEPLOY_ENABLED` en GitHub: esas variables pertenecen al despliegue alternativo por Docker/GHCR y SSH. Las variables de Vercel deben configurarse en el entorno de produccion de cada proyecto. Los valores sensibles no deben colocarse en variables publicas `NEXT_PUBLIC_`.
+
 ## Entorno requerido
 
 ### Integracion y liberacion

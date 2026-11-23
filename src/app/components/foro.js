@@ -2,50 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { readStoredUser, readStoredValue, useHydrated } from '../../services/browserSession';
 import "./foro.css";
 
 export default function Foro() {
-  const [user, setUser] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [user] = useState(readStoredUser);
+  const [comments, setComments] = useState(() => readStoredValue('forumComments', []));
   const [newComment, setNewComment] = useState('');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => (
+    user?.id ? readStoredValue(`cart_${user.id}`, []) : []
+  ));
   const [showCartModal, setShowCartModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const hydrated = useHydrated();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (!token || !savedUser) {
-      router.push('/');
-      return;
-    }
-
-    try {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Cargar comentarios del foro desde localStorage
-      const savedComments = localStorage.getItem('forumComments');
-      if (savedComments) {
-        setComments(JSON.parse(savedComments));
-      }
-      
-      // Cargar carrito del usuario si existe
-      const savedCart = localStorage.getItem(`cart_${userData.id}`);
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-    } catch (error) {
-      console.error("Error de autenticación:", error);
+    if (hydrated && !user) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       router.push('/');
-    } finally {
-      setLoading(false);
     }
-  }, [router]);
+  }, [hydrated, router, user]);
 
   useEffect(() => {
     if (user?.id) {
@@ -173,7 +150,7 @@ export default function Foro() {
     });
   };
 
-  if (loading) {
+  if (!hydrated) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>

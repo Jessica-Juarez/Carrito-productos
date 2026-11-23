@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { readStoredUser, readStoredValue, useHydrated } from '../../services/browserSession';
 import "./agregar.css";
 
 export default function Agregar() {
-  const [user, setUser] = useState(null);
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [user] = useState(readStoredUser);
+  const [cart, setCart] = useState(() => (
+    user?.id ? readStoredValue(`cart_${user.id}`, []) : []
+  ));
   const [showCartModal, setShowCartModal] = useState(false);
   const router = useRouter();
+  const hydrated = useHydrated();
 
   // Estado para el formulario
   const [productData, setProductData] = useState({
@@ -20,41 +23,17 @@ export default function Agregar() {
   });
 
   // Estado para productos agregados
-  const [userProducts, setUserProducts] = useState([]);
+  const [userProducts, setUserProducts] = useState(() => (
+    user?.id ? readStoredValue(`userProducts_${user.id}`, []) : []
+  ));
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (!token || !savedUser) {
-      router.push('/');
-      return;
-    }
-
-    try {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Cargar carrito del usuario si existe
-      const savedCart = localStorage.getItem(`cart_${userData.id}`);
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-
-      // Cargar productos agregados por el usuario
-      const savedUserProducts = localStorage.getItem(`userProducts_${userData.id}`);
-      if (savedUserProducts) {
-        setUserProducts(JSON.parse(savedUserProducts));
-      }
-    } catch (error) {
-      console.error("Error de autenticación:", error);
+    if (hydrated && !user) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       router.push('/');
-    } finally {
-      setLoading(false);
     }
-  }, [router]);
+  }, [hydrated, router, user]);
 
   useEffect(() => {
     if (user?.id) {
@@ -168,7 +147,7 @@ export default function Agregar() {
     setCart(updatedCart);
   };
 
-  if (loading) {
+  if (!hydrated) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>

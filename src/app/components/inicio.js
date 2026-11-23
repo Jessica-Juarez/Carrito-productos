@@ -1,92 +1,27 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { readStoredUser, readStoredValue, useHydrated } from '../../services/browserSession';
 import "./inicio.css";
 
 export default function Inicio() {
-  const [user, setUser] = useState(null);
-  const [cart, setCart] = useState([]);
+  const [user] = useState(readStoredUser);
+  const [cart, setCart] = useState(() => (
+    user?.id ? readStoredValue(`cart_${user.id}`, []) : []
+  ));
   const [showCartModal, setShowCartModal] = useState(false);
   const [showForumModal, setShowForumModal] = useState(false);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const hydrated = useHydrated();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (!token || !savedUser) {
-      router.push('/');
-      return;
-    }
-
-    try {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Cargar carrito específico del usuario
-      const savedCart = localStorage.getItem(`cart_${userData.id}`);
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
-      
-      // Cargar productos agregados por el usuario
-      const savedUserProducts = localStorage.getItem(`userProducts_${userData.id}`);
-      let userProducts = [];
-      if (savedUserProducts) {
-        userProducts = JSON.parse(savedUserProducts);
-      }
-      
-      // Productos fijos
-      const productosFijos = [
-        { 
-          nombre: "Audifonos Apple", 
-          precio: "MX$12,999", 
-          imagen: "https://m.media-amazon.com/images/I/81S533RgkwL._AC_UF350,350_QL80_.jpg" 
-        },
-        { 
-          nombre: "Audifonos Airpods", 
-          precio: "MX$2,380", 
-          imagen: "https://mobomx.vtexassets.com/arquivos/ids/209306-800-auto?v=638483692297530000&width=800&height=auto&aspect=true" 
-        },
-        { 
-          nombre: "Apple iPhone 17", 
-          precio: "MX$30,999", 
-          imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStapZyknZOP3Lm6teC024aEIZzS7Itb9W6Iw&s" 
-        },
-        { 
-          nombre: "Apple Watch s10", 
-          precio: "MX$11,999", 
-          imagen: "https://macstoreonline.com.mx/img/sku/watch454_FZ.jpg" 
-        },
-        { 
-          nombre: "Apple iPad a16", 
-          precio: "MX$14,999", 
-          imagen: "https://macstoreonline.com.mx/img/sku/ipadapp780_FZ.jpg" 
-        },
-        { 
-          nombre: "Apple MacBook", 
-          precio: "MX$59,999", 
-          imagen: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba13-skyblue-select-202503?wid=892&hei=820&fmt=jpeg&qlt=90&.v=M2RyY09CWXlTQUp1KzEveHR6VXNxcTQ1bzN1SitYTU83Mm9wbk1xa1lWN2h4SGtCQ2R3aStVaDRhL2VUV1NjdkJkRlpCNVhYU3AwTldRQldlSnpRa0lIV0Fmdk9rUlVsZ3hnNXZ3K3lEVlk" 
-        },
-      ];
-      
-      // Combinar productos fijos con los agregados por el usuario
-      const todosLosProductos = [...productosFijos, ...userProducts];
-      
-      // Actualizar estado de productos
-      setProductos(todosLosProductos);
-      
-    } catch (error) {
-      console.error("Error de autenticación:", error);
+    if (hydrated && !user) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       router.push('/');
-    } finally {
-      setLoading(false);
     }
-  }, [router]);
+  }, [hydrated, router, user]);
 
   useEffect(() => {
     if (user?.id) {
@@ -122,9 +57,46 @@ export default function Inicio() {
     });
   };
 
-  const [productos, setProductos] = useState([]);
+  const productos = useMemo(() => {
+    const productosFijos = [
+      {
+        nombre: "Audifonos Apple",
+        precio: "MX$12,999",
+        imagen: "https://m.media-amazon.com/images/I/81S533RgkwL._AC_UF350,350_QL80_.jpg"
+      },
+      {
+        nombre: "Audifonos Airpods",
+        precio: "MX$2,380",
+        imagen: "https://mobomx.vtexassets.com/arquivos/ids/209306-800-auto?v=638483692297530000&width=800&height=auto&aspect=true"
+      },
+      {
+        nombre: "Apple iPhone 17",
+        precio: "MX$30,999",
+        imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStapZyknZOP3Lm6teC024aEIZzS7Itb9W6Iw&s"
+      },
+      {
+        nombre: "Apple Watch s10",
+        precio: "MX$11,999",
+        imagen: "https://macstoreonline.com.mx/img/sku/watch454_FZ.jpg"
+      },
+      {
+        nombre: "Apple iPad a16",
+        precio: "MX$14,999",
+        imagen: "https://macstoreonline.com.mx/img/sku/ipadapp780_FZ.jpg"
+      },
+      {
+        nombre: "Apple MacBook",
+        precio: "MX$59,999",
+        imagen: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/mba13-skyblue-select-202503?wid=892&hei=820&fmt=jpeg&qlt=90&.v=M2RyY09CWXlTQUp1KzEveHR6VXNxcTQ1bzN1SitYTU83Mm9wbk1xa1lWN2h4SGtCQ2R3aStVaDRhL2VUV1NjdkJkRlpCNVhYU3AwTldRQldlSnpRa0lIV0Fmdk9rUlVsZ3hnNXZ3K3lEVlk"
+      },
+    ];
+    const productosUsuario = user?.id
+      ? readStoredValue(`userProducts_${user.id}`, [])
+      : [];
+    return [...productosFijos, ...productosUsuario];
+  }, [user]);
 
-  if (loading) {
+  if (!hydrated) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>

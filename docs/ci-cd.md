@@ -13,7 +13,16 @@ El flujo aplica estas etapas:
 
 El despliegue remoto requiere un servidor Docker y credenciales que solo la persona administradora del repositorio puede configurar. Mientras `APP_PUBLIC_API_URL` no tenga un valor, los jobs de publicacion y despliegue se omiten, pero el pipeline continua validando y probando el codigo.
 
-## Despliegue en Vercel
+## Despliegue en Vercel con Supabase
+
+Como alternativa a MongoDB Atlas, el backend puede usar PostgreSQL de Supabase mediante `DATABASE_URL`. Esta opcion inicia con una base vacia y no migra usuarios ni carritos existentes de MongoDB. El pipeline Docker sigue usando MongoDB.
+
+1. En el editor SQL del proyecto Supabase, ejecuta `backend/sql/supabase.sql`. La tabla queda en un esquema privado, no expuesto por la API publica de Supabase.
+2. En Supabase selecciona **Connect > Transaction pooler** y copia la cadena PostgreSQL, sustituyendo la contraseña de la base de datos. En el proyecto backend de Vercel guarda esa cadena en `DATABASE_URL`, en produccion. No compartas la cadena ni la guardes en Git.
+3. Configura tambien `JWT_SECRET` y `CORS_ORIGIN` como se indica abajo; redespliega el backend. `DATABASE_URL` tiene prioridad si tambien existe `MONGODB_URI`.
+4. Comprueba `/health`, configura `NEXT_PUBLIC_API_URL` en el proyecto frontend y redespliega el frontend. Prueba registro e inicio de sesion.
+
+## Despliegue en Vercel con MongoDB Atlas
 
 Vercel ejecuta Next.js y Express como dos proyectos; MongoDB Atlas aloja la base de datos. El entorno Docker de CI sigue ejecutandose para validar los cambios, pero Vercel no usa los scripts SSH ni `docker-compose.deploy.yml`. La integracion Git de Vercel despliega en paralelo con GitHub Actions: por si sola no espera que las pruebas terminen.
 

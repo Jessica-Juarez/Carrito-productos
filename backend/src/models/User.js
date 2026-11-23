@@ -26,4 +26,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = process.env.DATABASE_URL
+  ? require('./PostgresUser')
+  : mongoose.model('User', userSchema);

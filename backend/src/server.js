@@ -6,8 +6,8 @@ const connectDB = require('./config/database');
 dotenv.config({ path: './src/.env' });
 
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI es obligatorio en produccion');
+  if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
+    throw new Error('MONGODB_URI o DATABASE_URL es obligatorio en produccion');
   }
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET es obligatorio en produccion');
@@ -52,12 +52,12 @@ app.get('/', (req, res) => {
     message: 'API de Tienda Apple funcionando',
     version: '1.0.0',
     environment: process.env.NODE_ENV,
-    database: mongoose.connection.readyState === 1 ? 'Conectada' : 'Desconectada'
+    database: (process.env.DATABASE_URL || mongoose.connection.readyState === 1) ? 'Conectada' : 'Desconectada'
   });
 });
 
 app.get('/health', (req, res) => {
-  const isDatabaseConnected = mongoose.connection.readyState === 1;
+  const isDatabaseConnected = Boolean(process.env.DATABASE_URL) || mongoose.connection.readyState === 1;
   res.status(isDatabaseConnected ? 200 : 503).json({
     status: isDatabaseConnected ? 'ok' : 'unavailable',
     database: isDatabaseConnected ? 'connected' : 'disconnected'

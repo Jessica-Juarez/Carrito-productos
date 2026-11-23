@@ -52,7 +52,7 @@ const register = async (req, res) => {
     console.error('Error en registro:', error);
     
     // Manejar error de email duplicado
-    if (error.code === 11000) {
+    if (error.code === 11000 || error.code === '23505') {
       return res.status(400).json({ mensaje: 'El email ya está registrado' });
     }
     
